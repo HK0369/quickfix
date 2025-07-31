@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QuickFix - Roadside Assistance</title>
+  <link rel="stylesheet" href="css/global.css" />
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+</head>
+
+<body>
+  <div id="toast-container"></div>
+  <header class="main-header">
+    <div class="logo-container">
+      <img src="assets/logo/logo.png" alt="QuickFix Logo" class="logo" />
+      <h1 class="site-title">QuickFix</h1>
+    </div>
+    <div class="auth-buttons">
+      <a href="pages/auth/login.html" class="btn login-btn">Login</a>
+      <a href="pages/auth/signup.html" class="btn signup-btn">Sign Up</a>
+    </div>
+  </header>
+
+  <main class="hero-section">
+    <div class="background-wrapper">
+      <img src="assets/images/background.jpeg" alt="Background" class="bg-img" />
+      <div class="overlay-content">
+        <h2>Welcome to QuickFix</h2>
+        <p>Your 24/7 Roadside Assistance Partner.<br>Find nearby fuel stations, garages, and towing services instantly.
+          Help is just a click away.</p>
+        <div class="hero-buttons">
+          <a href="#" class="btn primary-btn login-required">Get Help Now</a>
+          <a href="#services" class="btn secondary-btn login-required">Learn More</a>
+        </div>
+      </div>
+    </div>
+  </main>
+  <section id="map-section" class="map-section">
+    <div class="section-container">
+      <h2 class="section-title">See Our Services in Action</h2>
+      <p class="section-subtitle">Our network is ready. Find your location to see how close help really is.</p>
+      <div class="map-container">
+        <div id="map"></div>
+        <div id="map-loading-overlay" class="map-loading-overlay">
+          <div class="map-loading-spinner"></div>
+          <div class="map-loading-text">Searching for services</div>
+          <div class="map-loading-subtext">Please wait while we find nearby assistance</div>
+        </div>
+      </div>
+
+      <div id="map-status"></div>
+      <div id="location-details" class="hidden">
+        <p class="login-prompt-text">Your address will appear here, Please login to access our full features.</p>
+        <p id="user-address" class="blurred-text">Your address:</p>
+      </div>
+
+
+      <button id="find-location-btn" class="btn primary-btn">Find My Location</button>
+
+      <div id="service-selection" class="hidden">
+        <h4>What service do you need?</h4>
+        <div class="service-buttons">
+          <button class="btn service-btn login-required">Fuel</button>
+          <button class="btn service-btn login-required">Towing</button>
+          <button class="btn service-btn login-required">Garages</button>
+        </div>
+      </div>
+
+
+
+    </div>
+  </section>
+
+
+  <section id="services" class="services-section">
+    <div class="section-container">
+      <h2 class="section-title">Our Services</h2>
+      <p class="section-subtitle">Comprehensive roadside assistance whenever you need it</p>
+
+      <div class="services-grid">
+        <div class="service-card">
+          <div class="card-image-container">
+            <img src="assets/images/fuel.jpeg" class="card-image" alt="A person refueling a car">
+            <div class="card-icon-wrapper">
+              <img src="assets/icons/fuel_icon.png" alt="Fuel Icon" class="custom-icon">
+            </div>
+          </div>
+          <div class="card-text-content">
+            <h3 class="card-title">Fuel Delivery</h3>
+            <p class="card-text">Run out of gas? We'll find the nearest fuel station or arrange delivery to your
+              location.</p>
+          </div>
+        </div>
+
+        <div class="service-card">
+          <div class="card-image-container">
+            <img src="assets/images/towing.jpeg" class="card-image" alt="A car being loaded onto a tow truck">
+            <div class="card-icon-wrapper">
+              <img src="assets/icons/towing_icon.png" alt="Towing Icon" class="custom-icon">
+            </div>
+          </div>
+          <div class="card-text-content">
+            <h3 class="card-title">Towing Service</h3>
+            <p class="card-text">Vehicle breakdown? Get connected with reliable towing services in your area.</p>
+          </div>
+        </div>
+
+        <div class="service-card">
+          <div class="card-image-container">
+            <img src="assets/images/garage.jpeg" class="card-image" alt="A mechanic working on a car engine">
+            <div class="card-icon-wrapper">
+              <img src="assets/icons/garage1_icon.png" alt="Garage Icon" class="custom-icon">
+            </div>
+          </div>
+          <div class="card-text-content">
+            <h3 class="card-title">Garage Services</h3>
+            <p class="card-text">Find nearby auto repair shops and garages for all your vehicle maintenance needs.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-section">
+    <div class="section-container">
+      <h2 class="cta-title">Ready to Get Started?</h2>
+      <p class="cta-subtitle">Sign up now and have access to roadside assistance whenever you need it.</p>
+      <a href="pages/auth/signup.html" class="btn cta-btn">Sign Up Now</a>
+    </div>
+  </section>
+
+  <div class="alert-bar">
+    <span class="alert-icon">⚠️</span>
+    <p>Limited Access: Please <a href="pages/auth/login.html">login</a> to access full location services and request
+      assistance.</p>
+  </div>
+
+  <footer class="site-footer">
+    <div class="footer-container">
+      <div class="footer-grid">
+        <div class="footer-column">
+          <h4 class="footer-heading">QuickFix Auto</h4>
+          <p class="footer-text">Your reliable roadside assistance partner, available 24/7.</p>
+        </div>
+
+        <div class="footer-column">
+          <h4 class="footer-heading">Services</h4>
+          <ul class="footer-links">
+            <li><a href="#" class="login-required">Emergency Fuel</a></li>
+            <li><a href="#" class="login-required">Towing Service</a></li>
+            <li><a href="#" class="login-required">Auto Repair</a></li>
+            <li><a href="#">24/7 Support</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-column">
+          <h4 class="footer-heading">Contact</h4>
+          <ul class="footer-contact">
+            <li>Emergency: 911</li>
+            <li>Support: 1-800-HELP</li>
+            <li>Email: help@quickfixauto.com</li>
+          </ul>
+        </div>
+
+        <div class="footer-column">
+          <h4 class="footer-heading">Legal</h4>
+          <ul class="footer-links">
+            <li><a href="#">Terms of Service</a></li>
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="#">Cookie Policy</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <hr class="footer-divider">
+
+      <div class="footer-copyright">
+        <p>&copy; 2024 QuickFix Auto. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <div id="popup-modal" class="modal-overlay">
+    <div class="modal-content">
+      <button id="modal-close" class="modal-close-btn">&times;</button>
+      <h3>Login Required</h3>
+      <p>Please login or create an account to use our services and see more details.</p>
+      <div class="modal-actions">
+        <a href="pages/auth/login.html" class="btn modal-btn-primary">Login</a>
+        <a href="pages/auth/signup.html" class="btn modal-btn-secondary">Sign Up</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/main.js" defer></script>
+
+</body>
+
+</html>

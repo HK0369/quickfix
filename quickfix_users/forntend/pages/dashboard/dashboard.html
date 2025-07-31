@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard - QuickFix</title>
+  <link rel="stylesheet" href="../../css/global.css" />
+  <link rel="stylesheet" href="dashboard.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+
+<body>
+  <div id="toast-container"></div>
+
+  <header class="main-header">
+    <div class="logo-container">
+      <a href="../../index.html" style="display: flex; align-items: center; text-decoration: none; color: white;">
+        <img src="../../assets/logo/logo.png" alt="QuickFix Logo" class="logo" />
+        <h1 class="site-title">QuickFix</h1>
+      </a>
+    </div>
+    <div class="header-user-info">
+      <span id="welcome-message"></span>
+      <button id="logout-btn" class="btn logout-btn">Logout</button>
+    </div>
+  </header>
+
+  <main class="dashboard-container">
+    <section class="welcome-section">
+      <h1>Welcome to Your Dashboard</h1>
+      <p>You're logged in and have full access. Use the map below to find your location and request assistance from
+        nearby services.</p>
+    </section>
+
+    <section id="services" class="services-section">
+      <div class="section-container">
+        <h2 class="section-title">Our Services</h2>
+        <p class="section-subtitle">Help is just a click away. Select a service after finding your location.</p>
+        <div class="services-grid">
+          <div class="service-card">
+            <div class="card-image-container">
+              <img src="../../assets/images/fuel.jpeg" class="card-image" alt="Fuel">
+            </div>
+            <div class="card-text-content">
+              <h3 class="card-title">Fuel Delivery</h3>
+            </div>
+          </div>
+          <div class="service-card">
+            <div class="card-image-container">
+              <img src="../../assets/images/towing.jpeg" class="card-image" alt="Towing">
+            </div>
+            <div class="card-text-content">
+              <h3 class="card-title">Towing Service</h3>
+            </div>
+          </div>
+          <div class="service-card">
+            <div class="card-image-container">
+              <img src="../../assets/images/garage.jpeg" class="card-image" alt="Garage">
+            </div>
+            <div class="card-text-content">
+              <h3 class="card-title">Garage Services</h3>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="map-section" class="map-section">
+      <div class="section-container">
+        <h2 class="section-title">Find Nearby Assistance</h2>
+        <p class="section-subtitle">Click the button to pinpoint your location on the map.</p>
+        <div class="map-container">
+          <div id="map"></div>
+          <div id="map-loading-overlay" class="map-loading-overlay">
+            <div class="map-loading-spinner"></div>
+            <div class="map-loading-text">Searching for services</div>
+            <div class="map-loading-subtext">Please wait while we find nearby assistance</div>
+          </div>
+        </div>
+        <div id="map-status"></div>
+        <button id="find-location-btn" class="btn primary-btn">Find My Location</button>
+        <button id="select-exact-location-btn" class="btn secondary-btn">Select Exact Location on Map</button>
+
+        <div id="location-details" class="hidden">
+          <p id="user-address"></p>
+        </div>
+        <div id="service-selection" class="hidden">
+          <h4>What's the issue? Tell us how we can help.</h4>
+          <div class="service-buttons">
+            <button class="btn service-btn" data-service="fuel">Fuel Stations</button>
+            <button class="btn service-btn" data-service="towing">Towing</button>
+            <button class="btn service-btn" data-service="garage">Garages</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="results-section" class="results-section hidden">
+      <div class="section-container">
+        <div class="results-header">
+          <h2 id="results-title" class="section-title">Nearby Services</h2>
+          <button id="view-past-requests-btn" class="btn secondary-btn">View Past Requests</button>
+        </div>
+        <div class="table-container">
+          <table id="results-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Distance</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="results-body">
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Service Details Sidebar -->
+    <div id="service-sidebar" class="service-sidebar">
+      <div class="sidebar-header">
+        <h3 id="sidebar-title">Service Details</h3>
+        <button id="close-sidebar" class="close-sidebar-btn" onclick="closeSidebar()">&times;</button>
+      </div>
+      <div class="sidebar-content">
+        <div id="service-details-content">
+          <!-- Service details will be added here -->
+        </div>
+
+        <!-- Fuel Service Form -->
+        <div id="fuel-form" class="help-request-section" style="display: none;">
+          <h4>Fuel Delivery Request</h4>
+          <form id="fuel-help-form" class="help-form">
+            <div class="form-group">
+              <label for="fuel-customer-name">Your Name *</label>
+              <input type="text" id="fuel-customer-name" name="customer-name" required>
+            </div>
+
+            <div class="form-group">
+              <label for="fuel-emergency-contact">Emergency Contact Number *</label>
+              <input type="tel" id="fuel-emergency-contact" name="emergency-contact"
+                placeholder="Enter your phone number" required>
+            </div>
+
+            <div class="form-group">
+              <label for="fuel-type">Fuel Type Required *</label>
+              <select id="fuel-type" name="fuel-type" required>
+                <option value="">Select fuel type</option>
+                <option value="petrol">Petrol</option>
+                <option value="diesel">Diesel</option>
+                <option value="cng">CNG</option>
+                <option value="electric">Electric Charging</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="fuel-amount">Fuel Amount (Liters) *</label>
+              <input type="number" id="fuel-amount" name="fuel-amount" placeholder="How much fuel do you need?"
+                required>
+            </div>
+
+            <div class="form-group">
+              <label for="fuel-vehicle-type">Vehicle Type *</label>
+              <select id="fuel-vehicle-type" name="vehicle-type" required>
+                <option value="">Select vehicle type</option>
+                <option value="car">Car</option>
+                <option value="bike">Bike</option>
+                <option value="truck">Truck</option>
+                <option value="bus">Bus</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="fuel-delivery-required">Delivery Required?</label>
+              <select id="fuel-delivery-required" name="delivery-required">
+                <option value="yes">Yes, deliver to my location</option>
+                <option value="no">No, I'll come to the station</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="fuel-additional-notes">Additional Notes</label>
+              <textarea id="fuel-additional-notes" name="additional-notes" rows="2"
+                placeholder="Any special requirements or instructions..."></textarea>
+            </div>
+
+            <button type="submit" class="btn submit-help-btn">Request Fuel</button>
+          </form>
+        </div>
+
+        <!-- Towing Service Form -->
+        <div id="towing-form" class="help-request-section" style="display: none;">
+          <h4>Towing Service Request</h4>
+          <form id="towing-help-form" class="help-form">
+            <div class="form-group">
+              <label for="towing-customer-name">Your Name *</label>
+              <input type="text" id="towing-customer-name" name="customer-name" required>
+            </div>
+
+            <div class="form-group">
+              <label for="towing-emergency-contact">Emergency Contact Number *</label>
+              <input type="tel" id="towing-emergency-contact" name="emergency-contact"
+                placeholder="Enter your phone number" required>
+            </div>
+
+            <div class="form-group">
+              <label for="towing-vehicle-type">Vehicle Type *</label>
+              <select id="towing-vehicle-type" name="vehicle-type" required>
+                <option value="">Select vehicle type</option>
+                <option value="car">Car</option>
+                <option value="bike">Bike</option>
+                <option value="truck">Truck</option>
+                <option value="bus">Bus</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="towing-issue-description">What's the problem? *</label>
+              <select id="towing-issue-description" name="issue-description" required>
+                <option value="">Select the issue</option>
+                <option value="breakdown">Vehicle Breakdown</option>
+                <option value="accident">Accident</option>
+                <option value="flat-tire">Flat Tire</option>
+                <option value="out-of-fuel">Out of Fuel</option>
+                <option value="battery-dead">Dead Battery</option>
+                <option value="other">Other Issue</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="towing-destination">Where to tow? *</label>
+              <input type="text" id="towing-destination" name="destination" placeholder="Garage address or destination"
+                required>
+            </div>
+
+            <div class="form-group">
+              <label for="towing-vehicle-model">Vehicle Model</label>
+              <input type="text" id="towing-vehicle-model" name="vehicle-model"
+                placeholder="e.g., Honda City, Maruti Swift">
+            </div>
+
+            <div class="form-group">
+              <label for="towing-additional-notes">Additional Notes</label>
+              <textarea id="towing-additional-notes" name="additional-notes" rows="2"
+                placeholder="Any special instructions or vehicle details..."></textarea>
+            </div>
+
+            <button type="submit" class="btn submit-help-btn">Request Towing</button>
+          </form>
+        </div>
+
+        <!-- Garage Service Form -->
+        <div id="garage-form" class="help-request-section" style="display: none;">
+          <h4>Garage Service Request</h4>
+          <form id="garage-help-form" class="help-form">
+            <div class="form-group">
+              <label for="garage-customer-name">Your Name *</label>
+              <input type="text" id="garage-customer-name" name="customer-name" required>
+            </div>
+
+            <div class="form-group">
+              <label for="garage-emergency-contact">Emergency Contact Number *</label>
+              <input type="tel" id="garage-emergency-contact" name="emergency-contact"
+                placeholder="Enter your phone number" required>
+            </div>
+
+            <div class="form-group">
+              <label for="garage-vehicle-type">Vehicle Type *</label>
+              <select id="garage-vehicle-type" name="vehicle-type" required>
+                <option value="">Select vehicle type</option>
+                <option value="car">Car</option>
+                <option value="bike">Bike</option>
+                <option value="truck">Truck</option>
+                <option value="bus">Bus</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="garage-service-type">Service Required *</label>
+              <select id="garage-service-type" name="service-type" required>
+                <option value="">Select service type</option>
+                <option value="repair">General Repair</option>
+                <option value="maintenance">Maintenance</option>
+                <option value="diagnostic">Diagnostic Check</option>
+                <option value="tire-change">Tire Change</option>
+                <option value="oil-change">Oil Change</option>
+                <option value="brake-service">Brake Service</option>
+                <option value="battery-service">Battery Service</option>
+                <option value="other">Other Service</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="garage-issue-description">Describe the Problem *</label>
+              <textarea id="garage-issue-description" name="issue-description" rows="3"
+                placeholder="Please describe the issue in detail..." required></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="garage-vehicle-model">Vehicle Model</label>
+              <input type="text" id="garage-vehicle-model" name="vehicle-model"
+                placeholder="e.g., Honda City, Maruti Swift">
+            </div>
+
+            <div class="form-group">
+              <label for="garage-urgency">Urgency Level</label>
+              <select id="garage-urgency" name="urgency">
+                <option value="normal">Normal</option>
+                <option value="urgent">Urgent</option>
+                <option value="emergency">Emergency</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="garage-additional-notes">Additional Notes</label>
+              <textarea id="garage-additional-notes" name="additional-notes" rows="2"
+                placeholder="Any additional information..."></textarea>
+            </div>
+
+            <button type="submit" class="btn submit-help-btn">Request Service</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Past Requests Sidebar -->
+    <div id="past-requests-sidebar" class="service-sidebar past-requests-sidebar">
+      <div class="sidebar-header">
+        <h3>My Request History</h3>
+        <button id="close-past-requests-sidebar" class="close-sidebar-btn"
+          onclick="closePastRequestsSidebar()">&times;</button>
+      </div>
+      <div class="sidebar-content">
+        <div id="past-requests-content">
+          <!-- Past requests will be loaded here -->
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script src="../../js/toast.js" type="module"></script>
+  <script src="../../js/dashboard.js" type="module"></script>
+</body>
+
+</html>
