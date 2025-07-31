@@ -1,0 +1,156 @@
+/* === Auth Page Styles (Centered, Clean, with Header) === */
+html,
+body {
+    height: 100%;
+}
+
+body.auth-page {
+    background: #f4f8ff;
+    min-height: 100vh;
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+main.auth-page {
+    min-height: calc(100vh - 104px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.auth-container {
+    background: #fff;
+    padding: 2.5rem 2rem 2rem 2rem;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(58, 105, 245, 0.10), 0 2px 8px rgba(0, 0, 0, 0.04);
+    width: 100%;
+    max-width: 420px;
+    text-align: center;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.auth-container h2 {
+    font-size: 2.1rem;
+    color: #2d3a5a;
+    margin-bottom: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.auth-container p {
+    color: #666;
+    margin-bottom: 2rem;
+}
+
+.auth-form {
+    width: 100%;
+}
+
+.auth-form .form-group {
+    margin-bottom: 1.2rem;
+    text-align: left;
+}
+
+.auth-form label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-weight: 600;
+    color: #3a69f5;
+    font-size: 1.05rem;
+}
+
+.auth-form input,
+.auth-form select {
+    width: 100%;
+    padding: 1rem 1.1rem;
+    border: 1.5px solid #dbeafe;
+    border-radius: 8px;
+    font-size: 1.08rem;
+    background: #f8fafc;
+    transition: border 0.2s, box-shadow 0.2s;
+    margin-top: 0.1rem;
+}
+
+.auth-form input:focus,
+.auth-form select:focus {
+    border: 1.5px solid #3a69f5;
+    outline: none;
+    background: #fff;
+    box-shadow: 0 0 0 2px #c7d7ff;
+}
+
+.auth-form .btn {
+    width: 100%;
+    padding: 1.1rem;
+    font-size: 1.15rem;
+    border-radius: 8px;
+    border: none;
+    background: #3a69f5;
+    color: #fff;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 12px rgba(58, 105, 245, 0.10);
+    margin-top: 0.5rem;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+}
+
+.auth-form .btn:hover {
+    background: #2646a0;
+    box-shadow: 0 4px 18px rgba(58, 105, 245, 0.13);
+}
+
+.auth-switch {
+    margin-top: 2rem;
+    font-size: 1.05rem;
+    color: #444;
+}
+
+.auth-switch a {
+    color: #3a69f5;
+    text-decoration: none;
+    font-weight: 700;
+    transition: color 0.2s;
+}
+
+.auth-switch a:hover {
+    text-decoration: underline;
+    color: #2646a0;
+}
+
+/* === Styles for Forgot Password Link === */
+.form-options {
+    text-align: right;
+    margin-bottom: 1.5rem;
+    margin-top: -0.5rem;
+}
+
+.forgot-password {
+    font-size: 0.98rem;
+    color: #555;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.forgot-password:hover {
+    color: #3a69f5;
+    text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+    .auth-container {
+        padding: 1.2rem 0.5rem 1.5rem 0.5rem;
+        max-width: 98vw;
+    }
+
+    .auth-container h2 {
+        font-size: 1.5rem;
+    }
+
+    .auth-form .btn {
+        font-size: 1rem;
+        padding: 0.9rem;
+    }
+}

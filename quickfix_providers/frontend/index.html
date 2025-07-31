@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>QuickFix Providers - Partner With Us</title>
+    <link rel="stylesheet" href="css/global.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+
+<body>
+    <div id="toast-container"></div>
+    <header class="main-header">
+        <div class="logo-container">
+            <img src="assets/logo/logo.png" alt="QuickFix Logo" class="logo" />
+            <h1 class="site-title">QuickFix Providers</h1>
+        </div>
+        <div class="auth-buttons">
+            <a href="pages/auth/login.html" class="btn login-btn">Login</a>
+            <a href="pages/auth/signup.html" class="btn signup-btn">Sign Up</a>
+        </div>
+    </header>
+
+    <main class="hero-section">
+        <div class="background-wrapper">
+            <img src="assets/images/background.jpeg" alt="Background" class="bg-img" />
+            <div class="overlay-content">
+                <h2>Become a QuickFix Provider</h2>
+                <p>Join our network of trusted roadside assistance professionals.<br>Grow your business by connecting
+                    with customers who need fuel delivery, towing, or garage services—anytime, anywhere.</p>
+                <div class="hero-buttons">
+                    <a href="pagechecs/auth/signup.html" class="btn primary-btn">Join as Provider</a>
+                    <a href="#services" class="btn secondary-btn">Learn More</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- How It Works Section for Providers -->
+    <section class="how-it-works-section">
+        <div class="section-container">
+            <h2 class="section-title">How QuickFix Works for Providers</h2>
+            <p class="section-subtitle">Grow your business and help more people in just a few simple steps</p>
+            <div class="how-steps-grid">
+                <div class="how-step">
+                    <div class="how-step-icon">
+                        <img src="assets/icons/garage_icon.png" alt="Register Icon" />
+                    </div>
+                    <h3 class="how-step-title">1. Register</h3>
+                    <p class="how-step-desc">Sign up as a provider and join our trusted network.</p>
+                </div>
+                <div class="how-step">
+                    <div class="how-step-icon">
+                        <img src="assets/icons/garage2_icon.png" alt="Setup Services Icon" />
+                    </div>
+                    <h3 class="how-step-title">2. Set Up Services</h3>
+                    <p class="how-step-desc">List your services (fuel, towing, garage, etc.) and service area.</p>
+                </div>
+                <div class="how-step">
+                    <div class="how-step-icon">
+                        <img src="assets/icons/fuel_icon.png" alt="Requests Icon" />
+                    </div>
+                    <h3 class="how-step-title">3. Receive Requests</h3>
+                    <p class="how-step-desc">Get notified when users nearby need your help.</p>
+                </div>
+                <div class="how-step">
+                    <div class="how-step-icon">
+                        <img src="assets/icons/towing_icon.png" alt="Earn Icon" />
+                    </div>
+                    <h3 class="how-step-title">4. Respond & Earn</h3>
+                    <p class="how-step-desc">Accept jobs, assist users, and grow your business with QuickFix.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Map Section for Providers -->
+    <section id="map-section" class="map-section">
+        <div class="section-container">
+            <h2 class="section-title">See Our Provider Network</h2>
+            <p class="section-subtitle">Discover how many providers are already serving customers in your area and join
+                our growing network.</p>
+            <div class="map-container">
+                <div id="map"></div>
+                <div id="map-loading-overlay" class="map-loading-overlay">
+                    <div class="map-loading-spinner"></div>
+                    <div class="map-loading-text">Loading provider network</div>
+                    <div class="map-loading-subtext">Please wait while we fetch nearby providers</div>
+                </div>
+            </div>
+            <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1.5rem;">
+                <button id="find-provider-location-btn" class="btn primary-btn">Find My Live Location</button>
+                <button id="find-all-providers-btn" class="btn secondary-btn">Find All Providers Near Me</button>
+            </div>
+
+            <div id="map-status"></div>
+            <div id="location-details" class="hidden">
+                <p class="login-prompt-text">Your location will appear here. Please login to see detailed provider
+                    information.</p>
+                <p id="user-address" class="blurred-text">Your location:</p>
+            </div>
+
+            <button id="find-providers-btn" class="btn primary-btn">Find Providers Near Me</button>
+            <br />
+            <button id="manual-location-btn" class="btn manual-location-btn">Can't see your location? Click here to
+                select it on the map.</button>
+            <div id="manual-location-msg" style="margin-top:10px;color:#3a69f5;font-weight:500;display:none;">Click on
+                the map to select your location.</div>
+
+            <div id="provider-selection" class="hidden">
+                <h4>What type of providers do you want to see?</h4>
+                <div class="provider-buttons">
+                    <button class="btn provider-btn login-required">Fuel Providers</button>
+                    <button class="btn provider-btn login-required">Towing Services</button>
+                    <button class="btn provider-btn login-required">Garage & Repair</button>
+                    <button class="btn provider-btn login-required">All Providers</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="services" class="services-section">
+        <div class="section-container">
+            <h2 class="section-title">Provider Opportunities</h2>
+            <p class="section-subtitle">Offer your services and reach more customers through QuickFix</p>
+            <div class="services-grid">
+                <div class="service-card">
+                    <div class="card-image-container">
+                        <img src="assets/images/fuel.jpeg" class="card-image" alt="Fuel delivery provider">
+                        <div class="card-icon-wrapper">
+                            <img src="assets/icons/fuel_icon.png" alt="Fuel Icon" class="custom-icon">
+                        </div>
+                    </div>
+                    <div class="card-text-content">
+                        <h3 class="card-title">Fuel Delivery</h3>
+                        <p class="card-text">Partner with us to deliver fuel to stranded motorists and expand your
+                            reach.</p>
+                    </div>
+                </div>
+                <div class="service-card">
+                    <div class="card-image-container">
+                        <img src="assets/images/towing.jpeg" class="card-image" alt="Towing provider">
+                        <div class="card-icon-wrapper">
+                            <img src="assets/icons/towing_icon.png" alt="Towing Icon" class="custom-icon">
+                        </div>
+                    </div>
+                    <div class="card-text-content">
+                        <h3 class="card-title">Towing Service</h3>
+                        <p class="card-text">Join our network to offer reliable towing services to customers in need.
+                        </p>
+                    </div>
+                </div>
+                <div class="service-card">
+                    <div class="card-image-container">
+                        <img src="assets/images/garage.jpeg" class="card-image" alt="Garage provider">
+                        <div class="card-icon-wrapper">
+                            <img src="assets/icons/garage1_icon.png" alt="Garage Icon" class="custom-icon">
+                        </div>
+                    </div>
+                    <div class="card-text-content">
+                        <h3 class="card-title">Garage & Repair</h3>
+                        <p class="card-text">List your garage or repair shop and get more customers through QuickFix.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta-section">
+        <div class="section-container">
+            <h2 class="cta-title">Ready to Grow Your Business?</h2>
+            <p class="cta-subtitle">Sign up now and start receiving service requests from customers in your area.</p>
+            <a href="pages/auth/signup.html" class="btn cta-btn">Sign Up as Provider</a>
+        </div>
+    </section>
+
+    <div class="alert-bar">
+        <span class="alert-icon">⚠️</span>
+        <p>Provider Access: Please <a href="pages/auth/login.html">login</a> to manage your services and view requests.
+        </p>
+    </div>
+
+    <footer class="site-footer">
+        <div class="footer-container">
+            <div class="footer-grid">
+                <div class="footer-column">
+                    <h4 class="footer-heading">QuickFix Providers</h4>
+                    <p class="footer-text">Partner with us to deliver fast, reliable roadside assistance.</p>
+                </div>
+                <div class="footer-column">
+                    <h4 class="footer-heading">Opportunities</h4>
+                    <ul class="footer-links">
+                        <li><a href="#" class="login-required">Fuel Delivery</a></li>
+                        <li><a href="#" class="login-required">Towing Service</a></li>
+                        <li><a href="#" class="login-required">Garage & Repair</a></li>
+                        <li><a href="#">24/7 Support</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h4 class="footer-heading">Contact</h4>
+                    <ul class="footer-contact">
+                        <li>Provider Support: 1-800-HELP</li>
+                        <li>Email: providers@quickfixauto.com</li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h4 class="footer-heading">Legal</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Cookie Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="footer-divider">
+            <div class="footer-copyright">
+                <p>&copy; 2024 QuickFix Providers. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js" defer></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var map = L.map('map').setView([20.5937, 78.9629], 5); // Centered on India
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 18,
+                attribution: '© OpenStreetMap'
+            }).addTo(map);
+
+            // Remove all provider markers/icons from the map. Do not add any provider markers.
+            var providers = [];
+            var providerMarkers = [];
+            function showProvidersNear(lat, lng) {
+                providerMarkers.forEach(function (marker) { map.removeLayer(marker); });
+                providerMarkers = [];
+                // No markers added
+            }
+
+            document.getElementById('find-providers-btn').addEventListener('click', function () {
+                manualMode = false;
+                manualMsg.style.display = 'none';
+                map.getContainer().classList.remove('crosshair-cursor');
+                if (navigator.geolocation) {
+                    document.getElementById('map-loading-overlay').classList.add('active');
+                    navigator.geolocation.getCurrentPosition(function (position) {
+                        var lat = position.coords.latitude;
+                        var lng = position.coords.longitude;
+                        map.setView([lat, lng], 12);
+                        clearUserLocation();
+                        userMarker = L.marker([lat, lng], { icon: L.icon({ iconUrl: 'https://cdn-icons-png.flaticon.com/512/64/64113.png', iconSize: [32, 32], iconAnchor: [16, 32] }) }).addTo(map);
+                        userCircle = L.circle([lat, lng], { radius: 3000, color: '#3a69f5', fillOpacity: 0.1 }).addTo(map);
+                        showProvidersNear(lat, lng);
+                        document.getElementById('map-status').textContent = 'Showing all providers.';
+                        document.getElementById('map-loading-overlay').classList.remove('active');
+                    }, function () {
+                        document.getElementById('map-loading-overlay').classList.remove('active');
+                        document.getElementById('map-status').textContent = 'Unable to access your location.';
+                    });
+                } else {
+                    document.getElementById('map-status').textContent = 'Geolocation is not supported by your browser.';
+                }
+            });
+
+            document.getElementById('manual-location-btn').addEventListener('click', function () {
+                manualMode = true;
+                manualMsg.style.display = 'block';
+                document.getElementById('map-status').textContent = 'Click on the map to select your location.';
+                map.getContainer().classList.add('crosshair-cursor');
+            });
+
+            map.on('click', function (e) {
+                if (!manualMode) return;
+                var lat = e.latlng.lat;
+                var lng = e.latlng.lng;
+                map.setView([lat, lng], 12);
+                clearUserLocation();
+                userMarker = L.marker([lat, lng], { icon: L.icon({ iconUrl: 'https://cdn-icons-png.flaticon.com/512/64/64113.png', iconSize: [32, 32], iconAnchor: [16, 32] }) }).addTo(map);
+                userCircle = L.circle([lat, lng], { radius: 3000, color: '#3a69f5', fillOpacity: 0.1 }).addTo(map);
+                showProvidersNear(lat, lng);
+                document.getElementById('map-status').textContent = 'Showing all providers.';
+                manualMode = false;
+                manualMsg.style.display = 'none';
+                map.getContainer().classList.remove('crosshair-cursor');
+            });
+
+            // Haversine formula for distance in km
+            function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+                var R = 6371; // Radius of the earth in km
+                var dLat = deg2rad(lat2 - lat1);
+                var dLon = deg2rad(lon2 - lon1);
+                var a =
+                    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+                    Math.sin(dLon / 2) * Math.sin(dLon / 2)
+                    ;
+                var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                var d = R * c; // Distance in km
+                return d;
+            }
+            function deg2rad(deg) {
+                return deg * (Math.PI / 180)
+            }
+
+            document.getElementById('find-provider-location-btn').addEventListener('click', function () {
+                if (navigator.geolocation) {
+                    document.getElementById('map-loading-overlay').classList.add('active');
+                    navigator.geolocation.getCurrentPosition(function (position) {
+                        var lat = position.coords.latitude;
+                        var lng = position.coords.longitude;
+                        map.setView([lat, lng], 14);
+                        L.marker([lat, lng]).addTo(map).bindPopup('Your Live Location').openPopup();
+                        document.getElementById('map-loading-overlay').classList.remove('active');
+                        document.getElementById('map-status').textContent = 'Centered on your live location.';
+                    }, function () {
+                        document.getElementById('map-loading-overlay').classList.remove('active');
+                        document.getElementById('map-status').textContent = 'Unable to access your location.';
+                    });
+                } else {
+                    document.getElementById('map-status').textContent = 'Geolocation is not supported by your browser.';
+                }
+            });
+            document.getElementById('find-all-providers-btn').addEventListener('click', function () {
+                // Placeholder: In future, fetch and display all providers near the user
+                document.getElementById('map-status').textContent = 'This will show all providers near you (feature coming soon).';
+            });
+        });
+    </script>
+</body>
+
+</html>
