@@ -1,5 +1,4 @@
-import { showToast } from '../../js/toast.js';
-
+// User Requests Management
 const API_URL = 'http://localhost:8001/api';
 
 document.addEventListener('DOMContentLoaded', () => {

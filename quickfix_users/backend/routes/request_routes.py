@@ -12,7 +12,7 @@ def send_service_request():
         data = request.get_json()
         
         # Validate required fields
-        required_fields = ['provider_id', 'service_type', 'customer_name', 'emergency_contact', 'vehicle_type']
+        required_fields = ['service_type', 'customer_name', 'emergency_contact', 'vehicle_type']
         for field in required_fields:
             if not data.get(field):
                 return jsonify({"error": f"{field} is required"}), 400

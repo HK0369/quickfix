@@ -85,20 +85,15 @@
             });
             const result = await res.json();
             showToast(result.message || result.error, !res.ok);
-            if (res.ok) form.reset();
+            if (res.ok) {
+                form.reset();
+                // Redirect to login page after successful signup
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 1500); // Wait 1.5 seconds to show the success message
+            }
         };
     </script>
 </body>
 
 </html>
-
-
-
-
-
-
-
-
-
-
-

@@ -38,9 +38,8 @@
             </div>
         </div>
     </main>
-    <script type="module">
-        import { showToast } from '../../js/toast.js';
-
+    <script src="../../js/toast.js"></script>
+    <script>
         document.getElementById('provider-login-form').addEventListener('submit', async function (e) {
             e.preventDefault();
 
@@ -66,7 +65,7 @@
                 if (response.ok) {
                     // Store the JWT token and provider data
                     console.log('Token received:', data.token);
-                    localStorage.setItem('authToken', data.token);
+                    localStorage.setItem('providerToken', data.token);
                     localStorage.setItem('providerId', data.provider._id);
                     localStorage.setItem('providerName', data.provider.name);
                     localStorage.setItem('providerEmail', data.provider.email);
@@ -77,7 +76,7 @@
                     // Redirect to dashboard after delay
                     setTimeout(() => {
                         window.location.href = '../dashboard/dashboard.html';
-                    }, 3000);
+                    }, 1500);
                 } else {
                     showToast(data.message || 'Login failed', true);
                 }

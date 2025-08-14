@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Requests - QuickFix Providers</title>
+    <link rel="stylesheet" href="../../css/global.css">
+    <link rel="stylesheet" href="requests.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+
+<body>
+    <div id="toast-container"></div>
+
+    <header class="main-header">
+        <div class="logo-container">
+            <a href="../../index.html" style="display: flex; align-items: center; text-decoration: none; color: white;">
+                <img src="../../assets/logo/logo.png" alt="QuickFix Logo" class="logo" />
+                <h1 class="site-title">QuickFix Providers</h1>
+            </a>
+        </div>
+        <nav class="header-nav">
+            <a href="../dashboard/dashboard.html" class="nav-link">
+                <i class="fas fa-home"></i> Dashboard
+            </a>
+            <a href="../profile/profile.html" class="nav-link">
+                <i class="fas fa-user"></i> Profile
+            </a>
+            <a href="../requests/requests.html" class="nav-link active">
+                <i class="fas fa-clipboard-list"></i> Requests
+            </a>
+        </nav>
+        <div class="header-user-info">
+            <span id="welcome-message"></span>
+            <button id="logout-btn" class="btn logout-btn">Logout</button>
+        </div>
+    </header>
+
+    <main class="requests-container">
+        <section class="requests-header">
+            <h1>Service Requests</h1>
+            <p>Manage incoming requests from customers in your area</p>
+        </section>
+
+        <section class="requests-stats">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon pending">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="pending-count">0</h3>
+                        <p>Pending</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon accepted">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="accepted-count">0</h3>
+                        <p>Accepted</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon completed">
+                        <i class="fas fa-check-double"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="completed-count">0</h3>
+                        <p>Completed</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon rejected">
+                        <i class="fas fa-times-circle"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="rejected-count">0</h3>
+                        <p>Rejected</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="requests-filters">
+            <div class="filter-group">
+                <label for="status-filter">Filter by Status:</label>
+                <select id="status-filter">
+                    <option value="all">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="accepted">Accepted</option>
+                    <option value="completed">Completed</option>
+                    <option value="rejected">Rejected</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="service-filter">Filter by Service:</label>
+                <select id="service-filter">
+                    <option value="all">All Services</option>
+                    <option value="fuel">Fuel</option>
+                    <option value="towing">Towing</option>
+                    <option value="garage">Garage</option>
+                </select>
+            </div>
+        </section>
+
+        <section class="requests-content">
+            <div id="loading-spinner" class="loading-spinner">
+                <div class="spinner"></div>
+                <p>Loading requests...</p>
+            </div>
+
+            <div id="no-requests" class="no-requests hidden">
+                <div class="no-requests-icon">
+                    <i class="fas fa-clipboard-list"></i>
+                </div>
+                <h3>No Requests Yet</h3>
+                <p>You haven't received any service requests yet.</p>
+                <a href="../dashboard/dashboard.html" class="btn primary-btn">Set Up Your Location</a>
+            </div>
+
+            <div id="requests-list" class="requests-list">
+                <!-- Requests will be loaded here -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Request Details Modal -->
+    <div id="request-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Request Details</h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div id="request-details" class="modal-body">
+                <!-- Request details will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button id="accept-request-btn" class="btn success-btn" style="display: none;">
+                    <i class="fas fa-check"></i> Accept Request
+                </button>
+                <button id="complete-request-btn" class="btn primary-btn" style="display: none;">
+                    <i class="fas fa-check-double"></i> Mark Complete
+                </button>
+                <button id="reject-request-btn" class="btn danger-btn" style="display: none;">
+                    <i class="fas fa-times"></i> Reject Request
+                </button>
+                <button class="btn secondary-btn" onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rejection Modal -->
+    <div id="rejection-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Reject Request</h2>
+                <span class="close" onclick="closeRejectionModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="rejection-reason">Reason for Rejection:</label>
+                    <textarea id="rejection-reason" rows="4"
+                        placeholder="Please provide a reason for rejecting this request..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="confirm-reject-btn" class="btn danger-btn">
+                    <i class="fas fa-times"></i> Confirm Rejection
+                </button>
+                <button class="btn secondary-btn" onclick="closeRejectionModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../js/toast.js"></script>
+    <script src="requests.js"></script>
+</body>
+
+</html>

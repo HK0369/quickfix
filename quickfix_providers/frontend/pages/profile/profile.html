@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Provider Profile - QuickFix</title>
+    <link rel="stylesheet" href="../../css/global.css">
+    <link rel="stylesheet" href="profile.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+
+<body>
+    <div id="toast-container"></div>
+
+    <header class="main-header">
+        <div class="logo-container">
+            <a href="../../index.html" style="display: flex; align-items: center; text-decoration: none; color: white;">
+                <img src="../../assets/logo/logo.png" alt="QuickFix Logo" class="logo" />
+                <h1 class="site-title">QuickFix Providers</h1>
+            </a>
+        </div>
+        <nav class="header-nav">
+            <a href="../dashboard/dashboard.html" class="nav-link">
+                <i class="fas fa-home"></i> Dashboard
+            </a>
+            <a href="../profile/profile.html" class="nav-link active">
+                <i class="fas fa-user"></i> Profile
+            </a>
+            <a href="../requests/requests.html" class="nav-link">
+                <i class="fas fa-clipboard-list"></i> Requests
+            </a>
+        </nav>
+        <div class="header-user-info">
+            <span id="welcome-message"></span>
+            <button id="logout-btn" class="btn logout-btn">Logout</button>
+        </div>
+    </header>
+
+    <main class="profile-container">
+        <section class="profile-header">
+            <h1>Provider Profile</h1>
+            <p>Manage your business information and service details</p>
+        </section>
+
+        <section class="profile-content">
+            <div class="profile-card">
+                <div class="profile-header-section">
+                    <div class="profile-avatar">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <div class="profile-info">
+                        <h2 id="provider-name">Loading...</h2>
+                        <p id="provider-type-text">Loading...</p>
+                    </div>
+                </div>
+
+                <form id="profile-form" class="profile-form">
+                    <div class="form-section">
+                        <h3>Business Information</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="business-name">Business Name</label>
+                                <input type="text" id="business-name" name="business_name" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label for="provider-type-select">Service Type</label>
+                                <select id="provider-type-select" name="provider_type" readonly>
+                                    <option value="">Select Service Type</option>
+                                    <option value="fuel">Fuel Station</option>
+                                    <option value="towing">Towing Service</option>
+                                    <option value="garage">Garage/Repair</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="phone">Phone Number</label>
+                                <input type="tel" id="phone" name="phone" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label for="address">Address</label>
+                                <input type="text" id="address" name="address" readonly>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>Service Details</h3>
+                        <div class="form-group">
+                            <label for="services">Services Provided</label>
+                            <textarea id="services" name="services" rows="3" readonly
+                                placeholder="Describe your services..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="working-hours">Working Hours</label>
+                            <input type="text" id="working-hours" name="working_hours" readonly
+                                placeholder="e.g., Mon-Fri: 8AM-6PM, Sat: 9AM-4PM">
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>Account Information</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="created-at">Account Created</label>
+                                <input type="text" id="created-at" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label for="last-updated">Last Updated</label>
+                                <input type="text" id="last-updated" readonly>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" id="edit-btn" class="btn primary-btn">
+                            <i class="fas fa-edit"></i> Edit Profile
+                        </button>
+                        <button type="submit" id="save-btn" class="btn success-btn" style="display: none;">
+                            <i class="fas fa-save"></i> Save Changes
+                        </button>
+                        <button type="button" id="cancel-btn" class="btn secondary-btn" style="display: none;">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="profile-actions">
+                <div class="action-card">
+                    <div class="action-icon">
+                        <i class="fas fa-clipboard-list"></i>
+                    </div>
+                    <div class="action-content">
+                        <h3>Service Requests</h3>
+                        <p>View and manage incoming requests</p>
+                        <a href="../requests/requests.html" class="btn primary-btn">View Requests</a>
+                    </div>
+                </div>
+
+                <div class="action-card">
+                    <div class="action-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <div class="action-content">
+                        <h3>Manage Location</h3>
+                        <p>Update your service location</p>
+                        <a href="../dashboard/dashboard.html" class="btn primary-btn">Manage Location</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="../../js/toast.js"></script>
+    <script src="profile.js"></script>
+</body>
+
+</html>

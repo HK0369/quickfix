@@ -1,18 +1,36 @@
-import { showToast } from '../../js/toast.js';
+// Profile page logic (classic script, no ES module imports)
 
-const API_URL = 'http://localhost:8002/api/providers/profile';
+const API_BASE = 'http://localhost:8002/api/providers/profile';
+
+function getAuthToken() {
+    // Support both keys to be safe
+    return (
+        localStorage.getItem('providerToken') ||
+        sessionStorage.getItem('providerToken') ||
+        localStorage.getItem('authToken') ||
+        sessionStorage.getItem('authToken')
+    );
+}
+
+async function apiCall(url, method = 'GET', data = null) {
+    const token = getAuthToken();
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const options = { method, headers };
+    if (data && method !== 'GET') options.body = JSON.stringify(data);
+
+    const resp = await fetch(url, options);
+    const json = await resp.json().catch(() => ({}));
+    if (!resp.ok) {
+        throw new Error(json.message || 'Request failed');
+    }
+    return json;
+}
 
 document.addEventListener('DOMContentLoaded', () => {
-    const token = localStorage.getItem('authToken');
+    const token = getAuthToken();
     const providerName = localStorage.getItem('providerName');
-    const providerEmail = localStorage.getItem('providerEmail');
-    const providerId = localStorage.getItem('providerId');
-
-    console.log('DOMContentLoaded - localStorage values:');
-    console.log('authToken:', token);
-    console.log('providerName:', providerName);
-    console.log('providerEmail:', providerEmail);
-    console.log('providerId:', providerId);
 
     if (!token) {
         window.location.href = '../auth/login.html';
@@ -29,9 +47,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {
+            localStorage.removeItem('providerToken');
+            sessionStorage.removeItem('providerToken');
             localStorage.removeItem('authToken');
+            sessionStorage.removeItem('authToken');
             localStorage.removeItem('providerName');
-            localStorage.removeItem('providerEmail');
             localStorage.removeItem('providerId');
             window.location.href = '../auth/login.html';
         });
@@ -46,68 +66,56 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function loadProfileData() {
     try {
-        const authToken = localStorage.getItem('authToken');
-        console.log('Auth token from localStorage:', authToken ? 'Present' : 'Missing');
-
-        if (!authToken) {
-            showToast('Authentication token not found. Please log in again.', true);
-            return;
-        }
-
-        console.log('Fetching profile from:', `${API_URL}/details`);
-        const response = await fetch(`${API_URL}/details`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${authToken}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        console.log('Response status:', response.status);
-
-        const data = await response.json();
-        console.log('Profile data received:', data);
-
-        if (data.success) {
-            displayProfileData(data.details);
+        const details = await apiCall(`${API_BASE}/details`, 'GET');
+        if (details && details.success && details.details) {
+            displayProfileData(details.details);
         } else {
-            showToast(data.message || 'Failed to load profile', true);
+            // No data yet; show blank editable form if needed
+            displayProfileData({});
         }
     } catch (error) {
         console.error('Error loading profile:', error);
-        showToast('Network error. Please try again.', true);
+        if (typeof showToast === 'function') showToast('Failed to load profile', true);
     }
 }
 
-function displayProfileData(details) {
+function toTitleCase(text) {
+    if (!text) return '';
+    return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+function displayProfileData(provider) {
     // Update profile header
-    document.getElementById('provider-name').textContent = details.business_name || 'Not set';
-    document.getElementById('provider-email').textContent = localStorage.getItem('providerEmail') || 'Not set';
-    document.getElementById('provider-type').textContent = details.provider_type || 'Not set';
+    document.getElementById('provider-name').textContent = provider.business_name || 'Set your business name';
+    const typeText = toTitleCase(provider.provider_type || '');
+    const typeTextEl = document.getElementById('provider-type-text');
+    if (typeTextEl) typeTextEl.textContent = typeText || 'Select service type';
 
     // Update form fields
-    document.getElementById('name').value = details.business_name || '';
-    document.getElementById('email').value = localStorage.getItem('providerEmail') || '';
-    document.getElementById('provider_type').value = details.provider_type || '';
-    document.getElementById('phone').value = details.phone || '';
-    document.getElementById('address').value = details.address || '';
-    document.getElementById('services_provided').value = details.services || '';
-    document.getElementById('license_number').value = ''; // Not available in current API
-    document.getElementById('working_hours').value = details.working_hours || '';
+    document.getElementById('business-name').value = provider.business_name || '';
+    const typeSelect = document.getElementById('provider-type-select');
+    if (typeSelect) typeSelect.value = provider.provider_type || '';
+    document.getElementById('phone').value = provider.phone || '';
+    document.getElementById('address').value = provider.address || '';
+    document.getElementById('services').value = provider.services || '';
+    document.getElementById('working-hours').value = provider.working_hours || '';
 
-    // Set default dates since they're not available in the current API
-    document.getElementById('created-at').value = 'Not available';
-    document.getElementById('last-updated').value = 'Not updated';
+    // Dates (not provided by backend currently)
+    const createdAt = provider.created_at ? new Date(provider.created_at).toLocaleString() : 'Not available';
+    const updatedAt = provider.updated_at ? new Date(provider.updated_at).toLocaleString() : 'Not updated';
+    const createdAtEl = document.getElementById('created-at');
+    const updatedAtEl = document.getElementById('last-updated');
+    if (createdAtEl) createdAtEl.value = createdAt;
+    if (updatedAtEl) updatedAtEl.value = updatedAt;
 
     // Store original values for cancel functionality
     window.originalProfileData = {
-        name: details.business_name || '',
-        email: localStorage.getItem('providerEmail') || '',
-        provider_type: details.provider_type || '',
-        phone: details.phone || '',
-        address: details.address || '',
-        services_provided: details.services || '',
-        license_number: '',
-        working_hours: details.working_hours || ''
+        business_name: provider.business_name || '',
+        provider_type: provider.provider_type || '',
+        phone: provider.phone || '',
+        address: provider.address || '',
+        services: provider.services || '',
+        working_hours: provider.working_hours || ''
     };
 }
 
@@ -117,142 +125,139 @@ function setupFormListeners() {
     const cancelBtn = document.getElementById('cancel-btn');
     const profileForm = document.getElementById('profile-form');
 
-    // Edit button functionality
-    editBtn.addEventListener('click', () => {
-        enableEditing();
-    });
-
-    // Cancel button functionality
-    cancelBtn.addEventListener('click', () => {
-        cancelEditing();
-    });
-
-    // Save button functionality
-    profileForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        await saveProfile();
-    });
+    if (editBtn) {
+        editBtn.addEventListener('click', () => enableEditing());
+    }
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', () => cancelEditing());
+    }
+    if (profileForm) {
+        profileForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await saveProfile();
+        });
+    }
 }
 
 function enableEditing() {
-    const inputs = document.querySelectorAll('#profile-form input:not([readonly]), #profile-form select');
+    const businessNameInput = document.getElementById('business-name');
+    const providerTypeSelect = document.getElementById('provider-type-select');
+    const phoneInput = document.getElementById('phone');
+    const addressInput = document.getElementById('address');
+    const servicesInput = document.getElementById('services');
+    const workingHoursInput = document.getElementById('working-hours');
     const editBtn = document.getElementById('edit-btn');
     const saveBtn = document.getElementById('save-btn');
     const cancelBtn = document.getElementById('cancel-btn');
 
     // Enable form inputs
-    inputs.forEach(input => {
-        input.removeAttribute('readonly');
-        input.style.backgroundColor = 'white';
+    [businessNameInput, phoneInput, addressInput, servicesInput, workingHoursInput].forEach((el) => {
+        if (!el) return;
+        el.removeAttribute('readonly');
+        el.style.backgroundColor = 'white';
     });
+    if (providerTypeSelect) {
+        providerTypeSelect.disabled = false;
+        providerTypeSelect.style.backgroundColor = 'white';
+    }
 
     // Show/hide buttons
-    editBtn.style.display = 'none';
-    saveBtn.style.display = 'inline-flex';
-    cancelBtn.style.display = 'inline-flex';
+    if (editBtn) editBtn.style.display = 'none';
+    if (saveBtn) saveBtn.style.display = 'inline-flex';
+    if (cancelBtn) cancelBtn.style.display = 'inline-flex';
 
-    // Focus on name input
-    document.getElementById('name').focus();
+    if (businessNameInput) businessNameInput.focus();
 }
 
 function cancelEditing() {
-    const inputs = document.querySelectorAll('#profile-form input:not([readonly]), #profile-form select');
+    const businessNameInput = document.getElementById('business-name');
+    const providerTypeSelect = document.getElementById('provider-type-select');
+    const phoneInput = document.getElementById('phone');
+    const addressInput = document.getElementById('address');
+    const servicesInput = document.getElementById('services');
+    const workingHoursInput = document.getElementById('working-hours');
     const editBtn = document.getElementById('edit-btn');
     const saveBtn = document.getElementById('save-btn');
     const cancelBtn = document.getElementById('cancel-btn');
 
     // Restore original values
     if (window.originalProfileData) {
-        document.getElementById('name').value = window.originalProfileData.name;
-        document.getElementById('email').value = window.originalProfileData.email;
-        document.getElementById('provider_type').value = window.originalProfileData.provider_type;
-        document.getElementById('phone').value = window.originalProfileData.phone;
-        document.getElementById('address').value = window.originalProfileData.address;
-        document.getElementById('services_provided').value = window.originalProfileData.services_provided;
-        document.getElementById('license_number').value = window.originalProfileData.license_number;
-        document.getElementById('working_hours').value = window.originalProfileData.working_hours;
+        if (businessNameInput) businessNameInput.value = window.originalProfileData.business_name;
+        if (providerTypeSelect) providerTypeSelect.value = window.originalProfileData.provider_type;
+        if (phoneInput) phoneInput.value = window.originalProfileData.phone;
+        if (addressInput) addressInput.value = window.originalProfileData.address;
+        if (servicesInput) servicesInput.value = window.originalProfileData.services;
+        if (workingHoursInput) workingHoursInput.value = window.originalProfileData.working_hours;
     }
 
     // Disable form inputs
-    inputs.forEach(input => {
-        if (input.id === 'created-at' || input.id === 'last-updated') {
-            input.setAttribute('readonly', true);
-            input.style.backgroundColor = '#f8f9fa';
-        }
+    [businessNameInput, phoneInput, addressInput, servicesInput, workingHoursInput].forEach((el) => {
+        if (!el) return;
+        el.setAttribute('readonly', true);
+        el.style.backgroundColor = '#f8f9fa';
     });
+    if (providerTypeSelect) {
+        providerTypeSelect.disabled = true;
+        providerTypeSelect.style.backgroundColor = '#f8f9fa';
+    }
 
     // Show/hide buttons
-    editBtn.style.display = 'inline-flex';
-    saveBtn.style.display = 'none';
-    cancelBtn.style.display = 'none';
+    if (editBtn) editBtn.style.display = 'inline-flex';
+    if (saveBtn) saveBtn.style.display = 'none';
+    if (cancelBtn) cancelBtn.style.display = 'none';
 }
 
 async function saveProfile() {
     try {
-        const authToken = localStorage.getItem('authToken');
-        const formData = new FormData(document.getElementById('profile-form'));
+        const businessNameInput = document.getElementById('business-name');
+        const providerTypeSelect = document.getElementById('provider-type-select');
+        const phoneInput = document.getElementById('phone');
+        const addressInput = document.getElementById('address');
+        const servicesInput = document.getElementById('services');
+        const workingHoursInput = document.getElementById('working-hours');
 
         const profileData = {
-            business_name: formData.get('name').trim(),
-            provider_type: formData.get('provider_type'),
-            phone: formData.get('phone').trim(),
-            address: formData.get('address').trim(),
-            services: formData.get('services_provided').trim(),
-            working_hours: formData.get('working_hours').trim()
+            business_name: businessNameInput.value.trim(),
+            provider_type: providerTypeSelect.value.trim(),
+            phone: phoneInput.value.trim(),
+            address: addressInput.value.trim(),
+            services: servicesInput.value.trim(),
+            working_hours: workingHoursInput.value.trim()
         };
 
-        // Validate required fields
-        if (!profileData.business_name || !profileData.provider_type || !profileData.phone) {
-            showToast('Please fill in all required fields.', true);
+        // Validate data
+        if (!profileData.business_name || !profileData.provider_type || !profileData.phone || !profileData.address) {
+            if (typeof showToast === 'function') showToast('Please fill in all required fields.', true);
             return;
         }
 
-        const response = await fetch(`${API_URL}/details`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${authToken}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(profileData)
-        });
+        const result = await apiCall(`${API_BASE}/details`, 'POST', profileData);
 
-        const data = await response.json();
+        if (result && result.success) {
+            if (typeof showToast === 'function') showToast('Profile updated successfully!');
 
-        if (data.success) {
-            showToast('Profile updated successfully!', false);
-
-            // Update localStorage
+            // Update localStorage name
             localStorage.setItem('providerName', profileData.business_name);
 
             // Update welcome message
             const welcomeMessage = document.getElementById('welcome-message');
-            if (welcomeMessage) {
-                welcomeMessage.textContent = `Welcome, ${profileData.business_name}!`;
-            }
+            if (welcomeMessage) welcomeMessage.textContent = `Welcome, ${profileData.business_name}!`;
 
             // Update profile header
             document.getElementById('provider-name').textContent = profileData.business_name;
-            document.getElementById('provider-type').textContent = profileData.provider_type;
+            const typeTextEl = document.getElementById('provider-type-text');
+            if (typeTextEl) typeTextEl.textContent = toTitleCase(profileData.provider_type);
 
             // Store new original values
-            window.originalProfileData = {
-                name: profileData.business_name,
-                email: localStorage.getItem('providerEmail') || '',
-                provider_type: profileData.provider_type,
-                phone: profileData.phone,
-                address: profileData.address,
-                services_provided: profileData.services,
-                license_number: '',
-                working_hours: profileData.working_hours
-            };
+            window.originalProfileData = { ...profileData };
 
             // Disable editing
             cancelEditing();
         } else {
-            showToast(data.message || 'Failed to update profile', true);
+            if (typeof showToast === 'function') showToast('Failed to update profile', true);
         }
     } catch (error) {
         console.error('Error saving profile:', error);
-        showToast('Network error. Please try again.', true);
+        if (typeof showToast === 'function') showToast('Network error. Please try again.', true);
     }
-} 
+}

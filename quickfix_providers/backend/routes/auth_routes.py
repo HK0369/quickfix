@@ -18,6 +18,7 @@ def signup():
     phone = data.get('phone')
     license_number = data.get('license_number')
     working_hours = data.get('working_hours')
+    location = data.get('location')  # Add location field
 
     if not all([name, email, password, provider_type, address, services_provided, phone]):
         return jsonify({"error": "Missing required fields"}), 400
@@ -27,7 +28,7 @@ def signup():
 
     hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
 
-    provider_id = mongo.db.providers.insert_one({
+    provider_data = {
         "name": name,
         "email": email,
         "password": hashed_password,
@@ -37,8 +38,11 @@ def signup():
         "phone": phone,
         "license_number": license_number,
         "working_hours": working_hours,
+        "location": location,  # Add location to provider data
         "created_at": datetime.datetime.utcnow()
-    }).inserted_id
+    }
+
+    provider_id = mongo.db.providers.insert_one(provider_data).inserted_id
 
     new_provider = mongo.db.providers.find_one({"_id": provider_id})
     new_provider.pop('password')
@@ -99,9 +103,23 @@ def get_profile():
         provider.pop('password', None)
         provider['_id'] = str(provider['_id'])
         
+        # Map the response to match frontend expectations
+        response_provider = {
+            "_id": provider['_id'],
+            "business_name": provider['name'],
+            "provider_type": provider['provider_type'],
+            "address": provider['address'],
+            "services": provider.get('services_provided', ''),
+            "phone": provider['phone'],
+            "working_hours": provider.get('working_hours', ''),
+            "location": provider.get('location'),  # Add location to response
+            "created_at": provider.get('created_at'),
+            "updated_at": provider.get('updated_at')
+        }
+        
         return jsonify({
             "success": True,
-            "provider": provider
+            "provider": response_provider
         }), 200
         
     except Exception as e:
@@ -114,33 +132,26 @@ def update_profile():
     try:
         data = request.get_json()
         provider_id = data.get('provider_id')
-        name = data.get('name')
-        email = data.get('email')
+        business_name = data.get('business_name')
         provider_type = data.get('provider_type')
         address = data.get('address')
-        services_provided = data.get('services_provided')
+        services = data.get('services')
         phone = data.get('phone')
-        license_number = data.get('license_number')
         working_hours = data.get('working_hours')
+        location = data.get('location')  # Add location field
         
         if not provider_id:
             return jsonify({"error": "Provider ID is required"}), 400
         
-        # Check if email is already taken by another provider
-        existing_provider = mongo.db.providers.find_one({"email": email, "_id": {"$ne": ObjectId(provider_id)}})
-        if existing_provider:
-            return jsonify({"error": "Email is already taken by another provider"}), 409
-        
         # Update provider data
         update_data = {
-            "name": name,
-            "email": email,
+            "name": business_name,  # Map business_name to name field
             "provider_type": provider_type,
             "address": address,
-            "services_provided": services_provided,
+            "services_provided": services,  # Map services to services_provided field
             "phone": phone,
-            "license_number": license_number,
             "working_hours": working_hours,
+            "location": location,  # Add location to update data
             "updated_at": datetime.datetime.utcnow()
         }
         
@@ -157,10 +168,24 @@ def update_profile():
         updated_provider.pop('password', None)
         updated_provider['_id'] = str(updated_provider['_id'])
         
+        # Map the response to match frontend expectations
+        response_provider = {
+            "_id": updated_provider['_id'],
+            "business_name": updated_provider['name'],
+            "provider_type": updated_provider['provider_type'],
+            "address": updated_provider['address'],
+            "services": updated_provider.get('services_provided', ''),
+            "phone": updated_provider['phone'],
+            "working_hours": updated_provider.get('working_hours', ''),
+            "location": updated_provider.get('location'),  # Add location to response
+            "created_at": updated_provider.get('created_at'),
+            "updated_at": updated_provider.get('updated_at')
+        }
+        
         return jsonify({
             "success": True,
             "message": "Profile updated successfully",
-            "provider": updated_provider
+            "provider": response_provider
         }), 200
         
     except Exception as e:

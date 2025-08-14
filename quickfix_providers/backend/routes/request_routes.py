@@ -5,6 +5,34 @@ from bson.objectid import ObjectId
 
 request_bp = Blueprint('request_bp', __name__)
 
+@request_bp.route('/pending-requests', methods=['GET'])
+def get_pending_requests():
+    """Get all pending requests that don't have a provider assigned yet"""
+    try:
+        # Find requests that are pending and don't have a provider_id assigned
+        requests = list(mongo.db.service_requests.find({
+            "status": "pending",
+            "provider_id": {"$in": [None, ""]}  # No provider assigned yet
+        }))
+        
+        # Convert ObjectId to string for JSON serialization
+        for req in requests:
+            req['_id'] = str(req['_id'])
+            if req.get('provider_id'):
+                req['provider_id'] = str(req['provider_id'])
+        
+        # Sort by creation date (newest first)
+        requests.sort(key=lambda x: x['created_at'], reverse=True)
+        
+        return jsonify({
+            "success": True,
+            "requests": requests
+        }), 200
+        
+    except Exception as e:
+        print(f"Error fetching pending requests: {e}")
+        return jsonify({"error": "Failed to fetch pending requests"}), 500
+
 @request_bp.route('/provider-requests', methods=['GET'])
 def get_provider_requests():
     """Get all requests for a specific provider"""
@@ -57,12 +85,20 @@ def get_request_details(request_id):
 
 @request_bp.route('/<request_id>/accept', methods=['PUT'])
 def accept_request(request_id):
-    """Accept a service request"""
+    """Accept a service request by assigning provider to it"""
     try:
+        data = request.get_json()
+        provider_id = data.get('provider_id')
+        
+        if not provider_id:
+            return jsonify({"error": "Provider ID is required"}), 400
+        
+        # Update the request to assign this provider
         result = mongo.db.service_requests.update_one(
             {"_id": ObjectId(request_id)},
             {
                 "$set": {
+                    "provider_id": provider_id,
                     "status": "accepted",
                     "updated_at": datetime.datetime.utcnow()
                 }

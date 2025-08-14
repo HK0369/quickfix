@@ -18,6 +18,21 @@ function getAuthToken() {
     return token;
 }
 
+// Get provider ID from token
+function getProviderId() {
+    const token = getAuthToken();
+    if (!token) return null;
+
+    try {
+        // Decode JWT token to get provider_id
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        return payload.provider_id;
+    } catch (error) {
+        console.error('Error decoding token:', error);
+        return null;
+    }
+}
+
 // API call helper
 async function apiCall(url, method = 'GET', data = null) {
     const token = getAuthToken();
@@ -53,35 +68,64 @@ async function apiCall(url, method = 'GET', data = null) {
     }
 }
 
-// Fetch provider location from backend
-async function fetchProviderLocation() {
+// Load provider profile data
+async function loadProviderProfile() {
     try {
-        const result = await apiCall('http://localhost:8002/api/providers/profile/location');
+        // First, try to get location data
+        const locationResult = await apiCall('http://localhost:8002/api/providers/profile/location');
 
-        if (result.success && result.location) {
-            savedLatLng = result.location;
+        if (locationResult.success && locationResult.location) {
+            savedLatLng = locationResult.location;
             setProviderMarker(savedLatLng.lat, savedLatLng.lng);
             map.setView([savedLatLng.lat, savedLatLng.lng], 15);
             document.getElementById('set-location-btn').style.display = 'none';
             document.getElementById('edit-location-btn').style.display = 'inline-block';
             document.getElementById('map-status').textContent = 'Your business location is set.';
-
-            // Load and display business details
-            await fetchProviderData();
-            if (providerData) {
-                document.getElementById('provider-details').innerHTML =
-                    `<strong>Business Name:</strong> <span id="business-name-display">${providerData.business_name}</span><br>` +
-                    `<strong>Address:</strong> <span id="business-address-display">${savedLatLng.address}</span>`;
-                document.getElementById('provider-details-form').style.display = 'block';
-            }
         } else {
             document.getElementById('set-location-btn').style.display = 'inline-block';
             document.getElementById('edit-location-btn').style.display = 'none';
             document.getElementById('map-status').textContent = '';
         }
+
+        // Then, try to get business details
+        const detailsResult = await apiCall('http://localhost:8002/api/providers/profile/details');
+
+        if (detailsResult.success && detailsResult.details) {
+            providerData = detailsResult.details;
+
+            // Fill the form with existing data
+            document.getElementById('business-name').value = providerData.business_name || '';
+            document.getElementById('provider-type').value = providerData.provider_type || '';
+            document.getElementById('phone').value = providerData.phone || '';
+            document.getElementById('address').value = providerData.address || '';
+            document.getElementById('services').value = providerData.services || '';
+            document.getElementById('working-hours').value = providerData.working_hours || '';
+
+            // Show the form with existing data
+            document.getElementById('provider-details-form').style.display = 'block';
+
+            // Update display
+            if (providerData.business_name) {
+                document.getElementById('provider-details').innerHTML =
+                    `<strong>Business Name:</strong> <span id="business-name-display">${providerData.business_name}</span><br>` +
+                    `<strong>Address:</strong> <span id="business-address-display">${providerData.address || 'Not set'}</span>`;
+            }
+
+            // Set form to read-only initially
+            setFormReadOnly(true);
+
+            console.log('Provider profile loaded successfully:', providerData);
+        } else {
+            console.log('No existing profile data found');
+            // Show form for new provider setup
+            document.getElementById('provider-details-form').style.display = 'block';
+            setFormReadOnly(false);
+        }
     } catch (error) {
-        console.error('Error fetching location:', error);
-        // Fallback to showing set location button
+        console.error('Error loading provider profile:', error);
+        // Show form for new provider setup on error
+        document.getElementById('provider-details-form').style.display = 'block';
+        setFormReadOnly(false);
         document.getElementById('set-location-btn').style.display = 'inline-block';
         document.getElementById('edit-location-btn').style.display = 'none';
         document.getElementById('map-status').textContent = '';
@@ -143,32 +187,39 @@ document.getElementById('confirm-location-btn').onclick = async function () {
     document.getElementById('map-status').textContent = 'Saving location...';
 
     try {
-        // Save to backend
+        // Update the address field in the form
+        document.getElementById('address').value = address;
+
+        // Create location data
         const locationData = {
             lat: selectedLatLng.lat,
             lng: selectedLatLng.lng,
             address: address
         };
 
+        // Save location to backend
         await apiCall('http://localhost:8002/api/providers/profile/location', 'POST', locationData);
 
+        // Update the display
+        if (providerData && providerData.business_name) {
+            document.getElementById('business-address-display').textContent = address;
+        }
+
         savedLatLng = locationData;
+
         document.getElementById('set-location-btn').style.display = 'none';
         document.getElementById('edit-location-btn').style.display = 'inline-block';
         document.getElementById('confirm-location-btn').style.display = 'none';
         document.getElementById('map-status').textContent = 'Location saved!';
 
         // Show business name and address
-        document.getElementById('provider-details').innerHTML =
-            `<strong>Business Name:</strong> <span id="business-name-display">Your Business Name</span><br>` +
-            `<strong>Address:</strong> <span id="business-address-display">${address}</span>`;
+        if (providerData && providerData.business_name) {
+            document.getElementById('provider-details').innerHTML =
+                `<strong>Business Name:</strong> <span id="business-name-display">${providerData.business_name}</span><br>` +
+                `<strong>Address:</strong> <span id="business-address-display">${address}</span>`;
+        }
 
         if (typeof showToast === 'function') showToast('Location saved successfully!');
-
-        // Show the provider details form
-        await fetchProviderData();
-        document.getElementById('address').value = address;
-        document.getElementById('provider-details-form').style.display = 'block';
 
     } catch (error) {
         document.getElementById('map-status').textContent = 'Error saving location. Please try again.';
@@ -176,58 +227,6 @@ document.getElementById('confirm-location-btn').onclick = async function () {
         console.error('Error saving location:', error);
     }
 };
-
-// Fetch provider data from backend
-async function fetchProviderData() {
-    try {
-        const result = await apiCall('http://localhost:8002/api/providers/profile/details');
-
-        if (result.success && result.details) {
-            providerData = result.details;
-        } else {
-            // Default data if nothing is saved
-            providerData = {
-                business_name: 'Sample Garage',
-                provider_type: 'garage',
-                phone: '+91 98765 43210',
-                address: '',
-                services: 'Car repair, oil change, tire replacement, battery service',
-                working_hours: 'Mon-Fri: 8AM-6PM, Sat: 9AM-4PM'
-            };
-        }
-
-        // Fill the form with data
-        document.getElementById('business-name').value = providerData.business_name;
-        document.getElementById('provider-type').value = providerData.provider_type;
-        document.getElementById('phone').value = providerData.phone;
-        document.getElementById('services').value = providerData.services;
-        document.getElementById('working-hours').value = providerData.working_hours;
-
-        // Set form to read-only initially
-        setFormReadOnly(true);
-
-    } catch (error) {
-        console.error('Error fetching provider data:', error);
-        // Use default data on error
-        providerData = {
-            business_name: 'Sample Garage',
-            provider_type: 'garage',
-            phone: '+91 98765 43210',
-            address: '',
-            services: 'Car repair, oil change, tire replacement, battery service',
-            working_hours: 'Mon-Fri: 8AM-6PM, Sat: 9AM-4PM'
-        };
-
-        // Fill the form with default data
-        document.getElementById('business-name').value = providerData.business_name;
-        document.getElementById('provider-type').value = providerData.provider_type;
-        document.getElementById('phone').value = providerData.phone;
-        document.getElementById('services').value = providerData.services;
-        document.getElementById('working-hours').value = providerData.working_hours;
-
-        setFormReadOnly(true);
-    }
-}
 
 function setFormReadOnly(readOnly) {
     const inputs = document.querySelectorAll('#provider-details-form input, #provider-details-form select, #provider-details-form textarea');
@@ -273,8 +272,12 @@ document.getElementById('provider-details-form').onsubmit = async function (e) {
         setFormReadOnly(true);
 
         // Update display
-        document.getElementById('business-name-display').textContent = formData.business_name;
-        document.getElementById('business-address-display').textContent = formData.address;
+        if (document.getElementById('business-name-display')) {
+            document.getElementById('business-name-display').textContent = formData.business_name;
+        }
+        if (document.getElementById('business-address-display')) {
+            document.getElementById('business-address-display').textContent = formData.address;
+        }
 
         if (typeof showToast === 'function') showToast('Profile updated successfully!');
 
@@ -302,4 +305,7 @@ document.getElementById('logout-btn').onclick = function () {
 };
 
 // Initialize on page load
-window.addEventListener('DOMContentLoaded', fetchProviderLocation);
+window.addEventListener('DOMContentLoaded', function () {
+    // Load provider profile data first
+    loadProviderProfile();
+});

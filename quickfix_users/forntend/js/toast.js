@@ -3,7 +3,7 @@
  * @param {string} message - The message to display.
  * @param {boolean} isError - Determines if it's an error (red) or success (green) toast.
  */
-export function showToast(message, isError = false) {
+function showToast(message, isError = false) {
   const container = document.getElementById('toast-container') || createToastContainer();
 
   const toast = document.createElement('div');
@@ -13,7 +13,7 @@ export function showToast(message, isError = false) {
   }
 
   const icon = isError ? '❌' : '✅';
-  
+
   toast.innerHTML = `
     <span class="toast-icon">${icon}</span>
     <span class="toast-message">${message}</span>
@@ -37,8 +37,11 @@ export function showToast(message, isError = false) {
 }
 
 function createToastContainer() {
-    const container = document.createElement('div');
-    container.id = 'toast-container';
-    document.body.appendChild(container);
-    return container;
+  const container = document.createElement('div');
+  container.id = 'toast-container';
+  document.body.appendChild(container);
+  return container;
 }
+
+// Make showToast globally available
+window.showToast = showToast;

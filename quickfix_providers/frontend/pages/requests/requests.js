@@ -1,9 +1,8 @@
-import { showToast } from '../../js/toast.js';
-
+// Provider Requests Management
 const API_URL = 'http://localhost:8002/api/providers';
 
 document.addEventListener('DOMContentLoaded', () => {
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem('providerToken'); // Changed from authToken to providerToken
     const providerName = localStorage.getItem('providerName');
     const providerId = localStorage.getItem('providerId');
 
@@ -22,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {
-            localStorage.removeItem('authToken');
+            localStorage.removeItem('providerToken'); // Changed from authToken to providerToken
             localStorage.removeItem('providerName');
             localStorage.removeItem('providerId');
             window.location.href = '../auth/login.html';
@@ -47,27 +46,36 @@ async function loadProviderRequests() {
         noRequests.classList.add('hidden');
         requestsList.innerHTML = '';
 
-        const response = await fetch(`${API_URL}/requests/provider-requests?provider_id=${providerId}`);
-        const data = await response.json();
+        // First, get pending requests that don't have a provider assigned yet
+        const pendingResponse = await fetch(`${API_URL}/requests/pending-requests`);
+        const pendingData = await pendingResponse.json();
 
-        if (data.success) {
-            const requests = data.requests;
+        // Then, get requests that are already assigned to this provider
+        const assignedResponse = await fetch(`${API_URL}/requests/provider-requests?provider_id=${providerId}`);
+        const assignedData = await assignedResponse.json();
 
-            if (requests.length === 0) {
-                loadingSpinner.style.display = 'none';
-                noRequests.classList.remove('hidden');
-                return;
-            }
+        let allRequests = [];
 
-            // Update stats
-            updateStats(requests);
-
-            // Display requests
-            displayRequests(requests);
-
-        } else {
-            showToast('Failed to load requests', true);
+        if (pendingData.success) {
+            allRequests = allRequests.concat(pendingData.requests);
         }
+
+        if (assignedData.success) {
+            allRequests = allRequests.concat(assignedData.requests);
+        }
+
+        if (allRequests.length === 0) {
+            loadingSpinner.style.display = 'none';
+            noRequests.classList.remove('hidden');
+            return;
+        }
+
+        // Update stats
+        updateStats(allRequests);
+
+        // Display requests
+        displayRequests(allRequests);
+
     } catch (error) {
         console.error('Error loading requests:', error);
         showToast('Network error. Please try again.', true);
@@ -104,8 +112,10 @@ function createRequestElement(request) {
     requestDiv.className = 'request-item';
     requestDiv.onclick = () => openRequestModal(request._id);
 
-    const statusClass = request.status;
-    const statusText = request.status.charAt(0).toUpperCase() + request.status.slice(1);
+    // Check if this request is pending and doesn't have a provider assigned
+    const isUnassignedPending = request.status === 'pending' && (!request.provider_id || request.provider_id === '');
+    const statusClass = isUnassignedPending ? 'unassigned' : request.status;
+    const statusText = isUnassignedPending ? 'Unassigned' : request.status.charAt(0).toUpperCase() + request.status.slice(1);
 
     const createdAt = new Date(request.created_at).toLocaleDateString('en-US', {
         year: 'numeric',
@@ -343,12 +353,23 @@ function displayRequestModal(request) {
     completeBtn.style.display = 'none';
     rejectBtn.style.display = 'none';
 
-    if (request.status === 'pending') {
+    // Check if this request is pending and doesn't have a provider assigned
+    const isUnassignedPending = request.status === 'pending' && (!request.provider_id || request.provider_id === '');
+
+    if (isUnassignedPending) {
+        // For unassigned pending requests, show accept button
+        acceptBtn.style.display = 'inline-block';
+        acceptBtn.textContent = 'Accept Request';
+        acceptBtn.onclick = () => acceptRequest(request._id);
+    } else if (request.status === 'pending') {
+        // For assigned pending requests, show accept and reject buttons
         acceptBtn.style.display = 'inline-block';
         rejectBtn.style.display = 'inline-block';
+        acceptBtn.textContent = 'Accept Request';
         acceptBtn.onclick = () => acceptRequest(request._id);
         rejectBtn.onclick = () => showRejectionModal(request._id);
     } else if (request.status === 'accepted') {
+        // For accepted requests, show complete button
         completeBtn.style.display = 'inline-block';
         completeBtn.onclick = () => completeRequest(request._id);
     }
@@ -378,11 +399,16 @@ function closeRejectionModal() {
 
 async function acceptRequest(requestId) {
     try {
+        const providerId = localStorage.getItem('providerId');
+
         const response = await fetch(`${API_URL}/requests/${requestId}/accept`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
-            }
+            },
+            body: JSON.stringify({
+                provider_id: providerId
+            })
         });
 
         const data = await response.json();

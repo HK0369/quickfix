@@ -1,5 +1,4 @@
-import { showToast } from './toast.js';
-
+// User Dashboard - Map and Service Management
 const API_URL = 'http://localhost:8001/api';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -284,7 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Handle help request form submission
-  function handleHelpRequest(event) {
+  async function handleHelpRequest(event) {
     // Prevent default form submission to avoid page reload
     event.preventDefault();
     event.stopPropagation();
@@ -292,38 +291,60 @@ document.addEventListener('DOMContentLoaded', () => {
     // Get form data
     const formData = new FormData(event.target);
     const requestData = {
-      customerName: formData.get('customer-name'),
-      emergencyContact: formData.get('emergency-contact'),
-      serviceType: formData.get('service-type') || 'general',
-      vehicleType: formData.get('vehicle-type'),
-      issueDescription: formData.get('issue-description'),
-      fuelType: formData.get('fuel-type'),
-      fuelAmount: formData.get('fuel-amount'),
-      deliveryRequired: formData.get('delivery-required'),
+      customer_name: formData.get('customer-name'),
+      emergency_contact: formData.get('emergency-contact'),
+      service_type: formData.get('service-type') || 'general',
+      vehicle_type: formData.get('vehicle-type'),
+      issue_description: formData.get('issue-description'),
+      fuel_type: formData.get('fuel-type'),
+      fuel_amount: formData.get('fuel-amount'),
+      delivery_required: formData.get('delivery-required'),
       destination: formData.get('destination'),
-      vehicleModel: formData.get('vehicle-model'),
-      urgency: formData.get('urgency'),
-      additionalNotes: formData.get('additional-notes'),
+      vehicle_model: formData.get('vehicle-model'),
+      urgency_level: formData.get('urgency'),
+      additional_notes: formData.get('additional-notes'),
+      user_email: localStorage.getItem('userEmail'), // Add user email
+      provider_id: null, // Will be set by backend or user selection
       timestamp: new Date().toISOString(),
       status: 'pending'
     };
 
-    // Here you would typically send this data to your backend
-    console.log('Help request submitted:', requestData);
+    console.log('Help request data:', requestData);
 
-    // Save the request to user's history
-    saveRequest(requestData);
+    try {
+      // Send request to backend
+      const response = await fetch(`${API_URL}/requests/send`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        },
+        body: JSON.stringify(requestData)
+      });
 
-    // Show success message
-    showToast('✅ Service request submitted successfully! We will contact you soon.', false);
+      const result = await response.json();
 
-    // Reset form
-    event.target.reset();
+      if (result.success) {
+        // Save the request to user's history
+        saveRequest(requestData);
 
-    // Close sidebar after a short delay
-    setTimeout(() => {
-      closeSidebar();
-    }, 3000);
+        // Show success message
+        showToast('✅ Service request submitted successfully! We will contact you soon.', false);
+
+        // Reset form
+        event.target.reset();
+
+        // Close sidebar after a short delay
+        setTimeout(() => {
+          closeSidebar();
+        }, 3000);
+      } else {
+        showToast(result.error || 'Failed to submit request. Please try again.', true);
+      }
+    } catch (error) {
+      console.error('Error submitting request:', error);
+      showToast('Network error. Please try again.', true);
+    }
 
     // Return false to ensure no further propagation
     return false;

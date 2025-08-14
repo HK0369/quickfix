@@ -20,9 +20,21 @@
                 <h1 class="site-title">QuickFix Providers</h1>
             </a>
         </div>
-        <nav>
-            <button id="logout-btn" class="logout-btn">Logout</button>
+        <nav class="header-nav">
+            <a href="../dashboard/dashboard.html" class="nav-link active">
+                <i class="fas fa-home"></i> Dashboard
+            </a>
+            <a href="../profile/profile.html" class="nav-link">
+                <i class="fas fa-user"></i> Profile
+            </a>
+            <a href="../requests/requests.html" class="nav-link">
+                <i class="fas fa-clipboard-list"></i> Requests
+            </a>
         </nav>
+        <div class="header-user-info">
+            <span id="welcome-message"></span>
+            <button id="logout-btn" class="logout-btn">Logout</button>
+        </div>
     </header>
 
     <main class="dashboard-map-section">
